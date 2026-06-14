@@ -1,83 +1,139 @@
-import { useCallback } from "react";
+// src/components/canvas/FlowCanvas.tsx
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
   Controls,
-  useNodesState,
-  useEdgesState,
+  applyNodeChanges,
+  applyEdgeChanges,
   addEdge,
-  type Node,
-  type Edge,
+  type NodeChange,
+  type EdgeChange,
   type Connection,
   type NodeMouseHandler,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+
 import { useAppStore } from "../../store/useAppStore";
+import { useGraph } from "../../context/GraphContext";
+import { ServiceNode } from "./ServiceNode";
+import { appNodeMapping } from "../../api/MockApi"
+import { ErrorOverlay } from "../ui/Error";
+import type { Node } from "@xyflow/react";
+import type { ServiceNodeData } from "../../types";
+import { LoadingOverlay } from "../ui/Loading";
+// nodeTypes MUST be defined outside the component
+// If defined inside, React creates a new object on every render and ReactFlow
+// remounts every node causing a visible flash.
+const nodeTypes = { serviceNode: ServiceNode } as const;
 
-const initialNodes: Node[] = [
-  {
-    id: "1",
-    position: { x: 0, y: 0 },
-    data: { label: "API Gateway" },
-  },
-  {
-    id: "2",
-    position: { x: -200, y: 150 },
-    data: { label: "Auth Service" },
-  },
-  {
-    id: "3",
-    position: { x: 200, y: 150 },
-    data: { label: "Database" },
-  },
-];
 
-const initialEdges: Edge[] = [
-  { id: "e1-2", source: "1", target: "2", animated: true },
-  { id: "e1-3", source: "1", target: "3", animated: true },
-];
+
+
+
+
 
 export function FlowCanvas() {
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { nodes, edges, setNodes, setEdges, isLoading, isError, error, refetch } =
+    useGraph();
 
-  const setSelectedNodeId = useAppStore((state) => state.setSelectedNodeId)
+  const setSelectedNodeId = useAppStore((s) => s.setSelectedNodeId);
+  const selectedAppId = useAppStore((s) => s.selectedAppId);
 
-  // Bonus: nodes ke handles ko drag karke naye edges bana sakte ho
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+
+  // When app selection changes: clear node selection + re-fit view
+  useEffect(() => {
+    setNodes((nds) => nds.map((n) => ({ ...n, selected: false })));
+
+    if (!rfInstance) return;
+    const timer = setTimeout(() => {
+      rfInstance.fitView({ duration: 400, padding: 0.3 });
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [selectedAppId, rfInstance]); 
+
+  // Derive display nodes: add custom type + apply opacity dimming per app
+  const displayNodes = useMemo(() => {
+    const relevant = selectedAppId
+      ? new Set(appNodeMapping[selectedAppId] ?? [])
+      : null;
+
+    return nodes.map((n) => ({
+      ...n,
+      type: "serviceNode",
+      style: {
+        ...n.style,
+        opacity: relevant ? (relevant.has(n.id) ? 1 : 0.22) : 1,
+        transition: "opacity 0.25s ease",
+      },
+    }));
+  }, [nodes, selectedAppId]);
+
+  // Dim edges whose both endpoints are outside the selected app
+  const displayEdges = useMemo(() => {
+    if (!selectedAppId) return edges;
+    const relevant = new Set(appNodeMapping[selectedAppId] ?? []);
+    return edges.map((e) => ({
+      ...e,
+      animated: relevant.has(e.source) && relevant.has(e.target),
+      style: {
+        ...e.style,
+        opacity: relevant.has(e.source) && relevant.has(e.target) ? 1 : 0.08,
+      },
+    }));
+  }, [edges, selectedAppId]);
+
+  // Controlled change handlers — delegate to GraphContext so RightPanel stays synced
+  const onNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      setNodes((nds) => applyNodeChanges(changes, nds) as Node<ServiceNodeData>[]);
+    },
+    [setNodes]
+  );
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+    },
+    [setEdges]
+  );
+
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
   );
 
-  // Node click → store mein save
   const onNodeClick: NodeMouseHandler = useCallback(
-    (_, node) => {
-      setSelectedNodeId(node.id);
-    },
+    (_, node) => setSelectedNodeId(node.id),
     [setSelectedNodeId]
   );
 
-  // Canvas click (empty area) → deselect
-  const onPaneClick = useCallback(() => {
-    setSelectedNodeId(null);
-  }, [setSelectedNodeId]);
+  const onPaneClick = useCallback(
+    () => setSelectedNodeId(null),
+    [setSelectedNodeId]
+  );
 
+  if (isLoading) return <LoadingOverlay />;
+  if (isError) return <ErrorOverlay message={error?.message} onRetry={refetch} />;
 
   return (
     <ReactFlow
-      nodes={nodes}
-      edges={edges}
+      nodes={displayNodes}
+      edges={displayEdges}
+      nodeTypes={nodeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onNodeClick={onNodeClick}
       onPaneClick={onPaneClick}
+      onInit={setRfInstance}
       fitView
       deleteKeyCode={["Delete", "Backspace"]}
-
     >
-      <Background variant={BackgroundVariant.Dots} gap={16} size={1.5} />
+      <Background variant={BackgroundVariant.Dots} gap={14} size={1.5} />
       <Controls />
     </ReactFlow>
   );

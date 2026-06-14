@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slider as SliderPrimitive } from "radix-ui"
 
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils"
 
 function Slider({
   className,
@@ -36,6 +36,7 @@ function Slider({
       )}
       {...props}
     >
+      <SliderPrimitive.Range className="absolute h-full bg-white" />
       <SliderPrimitive.Track
         data-slot="slider-track"
         className="relative grow overflow-hidden rounded-full bg-muted data-horizontal:h-1 data-horizontal:w-full data-vertical:h-full data-vertical:w-1"

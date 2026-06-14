@@ -3,6 +3,8 @@ import { LeftRail } from "./components/layout/LeftRail";
 import { RightPanel } from "./components/layout/RightPanel";
 import { FlowCanvas } from "./components/canvas/FlowCanvas";
 
+ 
+
 function App() {
   return (
     <div className="flex h-screen flex-col">
