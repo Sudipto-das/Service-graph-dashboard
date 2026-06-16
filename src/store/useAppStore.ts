@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { ReactFlowInstance } from '@xyflow/react'
 
 
 interface AppState {
@@ -7,12 +8,14 @@ interface AppState {
     selectedNodeId: string | null;
     isMobilePanelOpen: boolean;
     activeInspectorTab: "config" | "runtime";
+    rfInstance: ReactFlowInstance | null;
 
     // Actions
     setSelectedAppId: (appId: string | null) => void;
     setSelectedNodeId: (nodeId: string | null) => void;
     setMobilePanelOpen: (open: boolean) => void;
     setActiveInspectorTab: (tab: "config" | "runtime") => void;
+    setRfInstance: (instance: ReactFlowInstance | null) => void;
 }
 
 
@@ -22,6 +25,7 @@ export const useAppStore = create<AppState>((set) => ({
     selectedNodeId: null,
     isMobilePanelOpen: false,
     activeInspectorTab: "config",
+    rfInstance: null,
 
     //Actions 
     setSelectedAppId(appId) {
@@ -35,5 +39,8 @@ export const useAppStore = create<AppState>((set) => ({
     },
     setActiveInspectorTab(tab) {
         set({ activeInspectorTab: tab })
+    },
+    setRfInstance(instance) {
+        set({ rfInstance: instance })
     },
 }));

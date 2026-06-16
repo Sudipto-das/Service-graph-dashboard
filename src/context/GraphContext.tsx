@@ -11,6 +11,7 @@ interface GraphContextType {
     setNodes: React.Dispatch<React.SetStateAction<Node<ServiceNodeData>[]>>;
     setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
     updateNodeData: (nodeId: string, data: Partial<ServiceNodeData>) => void;
+    addNode: () => string;
     isLoading: boolean;
     isError: boolean;
     error: Error | null;
@@ -40,6 +41,17 @@ export function GraphProvider({ children }: { children: ReactNode }) {
         );
     }, []);
 
+    const addNode = useCallback(() => {
+        const id = crypto.randomUUID();
+        const newNode: Node<ServiceNodeData> = {
+            id,
+            position: { x: Math.random() * 400 - 200, y: Math.random() * 400 - 200 },
+            data: { label: "New Service", status: "healthy", cpuLimit: 50 },
+        };
+        setNodes((nds) => [...nds, newNode]);
+        return id;
+    }, []);
+
     return (
         <GraphContext.Provider value={{
             nodes,
@@ -47,6 +59,7 @@ export function GraphProvider({ children }: { children: ReactNode }) {
             setNodes,
             setEdges,
             updateNodeData,
+            addNode,
             isLoading: isPending,
             isError,
             error: error as Error | null,

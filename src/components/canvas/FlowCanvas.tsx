@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -12,7 +12,6 @@ import {
   type EdgeChange,
   type Connection,
   type NodeMouseHandler,
-  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -30,19 +29,14 @@ import { LoadingOverlay } from "../ui/Loading";
 const nodeTypes = { serviceNode: ServiceNode } as const;
 
 
-
-
-
-
-
 export function FlowCanvas() {
   const { nodes, edges, setNodes, setEdges, isLoading, isError, error, refetch } =
     useGraph();
 
   const setSelectedNodeId = useAppStore((s) => s.setSelectedNodeId);
   const selectedAppId = useAppStore((s) => s.selectedAppId);
-
-  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+  const setRfInstance = useAppStore((s) => s.setRfInstance);
+  const rfInstance = useAppStore((s) => s.rfInstance);
 
   // When app selection changes: clear node selection + re-fit view
   useEffect(() => {
