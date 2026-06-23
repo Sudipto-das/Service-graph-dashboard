@@ -104,7 +104,8 @@ export function NodeInspector({ nodeId, data, onDataChange }: NodeInspectorProps
                   value={data.cpuLimit}
                   onChange={(e) => {
                     const val = Math.min(100, Math.max(0, Number(e.target.value) || 0));
-                    onDataChange(nodeId, { cpuLimit: val });
+                    const status: NodeStatus = val > 80 ? "down" : val > 60 ? "degraded" : "healthy";
+                    onDataChange(nodeId, { cpuLimit: val, status });
                   }}
                   className="h-7 w-14 px-2 text-right text-xs"
                 />
@@ -113,7 +114,10 @@ export function NodeInspector({ nodeId, data, onDataChange }: NodeInspectorProps
             </div>
             <Slider
               value={[data.cpuLimit]}
-              onValueChange={([val]) => onDataChange(nodeId, { cpuLimit: val })}
+              onValueChange={([val]) => {
+                const status: NodeStatus = val > 80 ? "down" : val > 60 ? "degraded" : "healthy";
+                onDataChange(nodeId, { cpuLimit: val, status });
+              }}
               min={0}
               max={100}
               step={1}
