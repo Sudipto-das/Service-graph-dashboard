@@ -18,11 +18,11 @@ import "@xyflow/react/dist/style.css";
 import { useAppStore } from "../../store/useAppStore";
 import { useGraph } from "../../context/GraphContext";
 import { ServiceNode } from "./ServiceNode";
-import { appNodeMapping } from "../../api/MockApi"
 import { ErrorOverlay } from "../ui/Error";
 import type { Node } from "@xyflow/react";
 import type { ServiceNodeData } from "../../types";
 import { LoadingOverlay } from "../ui/Loading";
+
 // nodeTypes MUST be defined outside the component
 // If defined inside, React creates a new object on every render and ReactFlow
 // remounts every node causing a visible flash.
@@ -49,36 +49,11 @@ export function FlowCanvas() {
     return () => clearTimeout(timer);
   }, [selectedAppId, rfInstance]); 
 
-  // Derive display nodes: add custom type + apply opacity dimming per app
-  const displayNodes = useMemo(() => {
-    const relevant = selectedAppId
-      ? new Set(appNodeMapping[selectedAppId] ?? [])
-      : null;
-
-    return nodes.map((n) => ({
-      ...n,
-      type: "serviceNode",
-      style: {
-        ...n.style,
-        opacity: relevant ? (relevant.has(n.id) ? 1 : 0.22) : 1,
-        transition: "opacity 0.25s ease",
-      },
-    }));
-  }, [nodes, selectedAppId]);
-
-  // Dim edges whose both endpoints are outside the selected app
-  const displayEdges = useMemo(() => {
-    if (!selectedAppId) return edges;
-    const relevant = new Set(appNodeMapping[selectedAppId] ?? []);
-    return edges.map((e) => ({
-      ...e,
-      animated: relevant.has(e.source) && relevant.has(e.target),
-      style: {
-        ...e.style,
-        opacity: relevant.has(e.source) && relevant.has(e.target) ? 1 : 0.08,
-      },
-    }));
-  }, [edges, selectedAppId]);
+  // Inject custom node type so ReactFlow renders ServiceNode instead of default white box
+  const displayNodes = useMemo(
+    () => nodes.map((n) => ({ ...n, type: "serviceNode" })),
+    [nodes]
+  );
 
   // Controlled change handlers — delegate to GraphContext so RightPanel stays synced
   const onNodesChange = useCallback(
@@ -115,7 +90,7 @@ export function FlowCanvas() {
   return (
     <ReactFlow
       nodes={displayNodes}
-      edges={displayEdges}
+      edges={edges}
       nodeTypes={nodeTypes}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}

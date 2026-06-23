@@ -1,4 +1,4 @@
-
+import { useEffect } from "react";
 import { cn } from "../../lib/utils";
 
 import { useApps } from "../../hooks/useApps";
@@ -17,6 +17,13 @@ export function AppsList() {
   const { data: apps, isPending, isError, error, refetch } = useApps();
   const selectedAppId = useAppStore((s) => s.selectedAppId);
   const setSelectedAppId = useAppStore((s) => s.setSelectedAppId);
+
+  // Auto-select first app on mount
+  useEffect(() => {
+    if (apps && apps.length > 0 && !selectedAppId) {
+      setSelectedAppId(apps[0].id);
+    }
+  }, [apps, selectedAppId, setSelectedAppId]);
 
   if (isPending) return <LoadingOverlay />;
   if (isError) return <ErrorOverlay message={error?.message} onRetry={refetch} />;

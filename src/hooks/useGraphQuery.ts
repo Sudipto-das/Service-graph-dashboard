@@ -1,14 +1,13 @@
-
-
 import { useQuery } from "@tanstack/react-query";
-import { fetchGraphData } from "../api/MockApi";
+import { fetchGraphByAppId } from "../api/MockApi";
 
-export function useGraphQuery() {
+export function useGraphQuery(appId: string | null) {
   return useQuery({
-    queryKey: ["graph"],
-    queryFn: fetchGraphData,
-    retry: 2,          // up to 2 retries → 3 total attempts max
-    retryDelay: 800,   
+    queryKey: ["graph", appId],
+    queryFn: () => fetchGraphByAppId(appId!),
+    enabled: !!appId,        // only fetch when an app is selected
+    retry: 2,
+    retryDelay: 800,
     staleTime: 60_000,
   });
 }
