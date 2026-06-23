@@ -1,5 +1,5 @@
 
-import { PanelRight, Plus } from "lucide-react";
+import { PanelRight, Plus, Workflow } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAppStore } from "../../store/useAppStore";
 import { useGraph } from "../../context/GraphContext";
@@ -23,7 +23,7 @@ export function TopBar() {
     <header className="flex h-14 items-center justify-between border-b bg-background px-4">
       {/* Logo */}
       <div className="flex items-center gap-2">
-        <div className="h-6 w-6 rounded bg-primary" />
+        <Workflow className="h-6 w-6 text-primary" />
         <span className="font-semibold">ServiceGraph</span>
       </div>
 
