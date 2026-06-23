@@ -79,6 +79,37 @@
   --ring:                   oklch(0.623 0.214 155.826);
 }
 
+/* ─── ReactFlow Controls ────────────────────────── */
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.25) !important;
+  overflow: hidden;
+}
+
+.react-flow__controls button {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+  width: 26px !important;
+  height: 26px !important;
+  transition: background-color 0.15s ease;
+}
+
+.react-flow__controls button:hover {
+  background: var(--accent) !important;
+}
+
+.react-flow__controls button svg {
+  fill: currentColor !important;
+  max-width: 14px !important;
+  max-height: 14px !important;
+}
+
+.react-flow__controls button:disabled {
+  opacity: 0.4;
+}
+
 /* ─── Base Styles ────────────────────────────────── */
 @layer base {
   * {
