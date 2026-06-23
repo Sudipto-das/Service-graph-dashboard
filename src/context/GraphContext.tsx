@@ -2,8 +2,7 @@ import { createContext, useContext, useCallback, useState, type ReactNode, useEf
 import type { Node, Edge } from "@xyflow/react";
 import type { ServiceNodeData } from "../types/index";
 import { useGraphQuery } from "../hooks/useGraphQuery";
-
-
+import { useAppStore } from "../store/useAppStore";
 
 interface GraphContextType {
     nodes: Node<ServiceNodeData>[];
@@ -22,17 +21,23 @@ const GraphContext = createContext<GraphContextType | null>(null);
 
 export function GraphProvider({ children }: { children: ReactNode }) {
 
-    const { data, isPending, isError, error, refetch } = useGraphQuery()
+    const selectedAppId = useAppStore((s) => s.selectedAppId);
+    const { data, isPending, isError, error, refetch } = useGraphQuery(selectedAppId);
     const [nodes, setNodes] = useState<Node<ServiceNodeData>[]>([]);
     const [edges, setEdges] = useState<Edge[]>([]);
 
-
+    // Sync query data into local state whenever it changes (new app selected, refetch, etc.)
     useEffect(() => {
-        if (data && nodes.length === 0) {
+        if (data) {
             setNodes(data.nodes);
             setEdges(data.edges);
+        } else if (!selectedAppId) {
+            // No app selected → clear the canvas
+            setNodes([]);
+            setEdges([]);
         }
-    }, [data]);
+    }, [data, selectedAppId]);
+
     const updateNodeData = useCallback((nodeId: string, newData: Partial<ServiceNodeData>) => {
         setNodes((nds) =>
             nds.map((node) =>
