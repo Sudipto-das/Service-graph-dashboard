@@ -9,6 +9,7 @@ interface AppState {
     isMobilePanelOpen: boolean;
     activeInspectorTab: "config" | "runtime";
     rfInstance: ReactFlowInstance | null;
+    theme: "light" | "dark";
 
     // Actions
     setSelectedAppId: (appId: string | null) => void;
@@ -16,16 +17,18 @@ interface AppState {
     setMobilePanelOpen: (open: boolean) => void;
     setActiveInspectorTab: (tab: "config" | "runtime") => void;
     setRfInstance: (instance: ReactFlowInstance | null) => void;
+    toggleTheme: () => void;
 }
 
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
     // Initial state
     selectedAppId: null,
     selectedNodeId: null,
     isMobilePanelOpen: false,
     activeInspectorTab: "config",
     rfInstance: null,
+    theme: (localStorage.getItem("theme") as "light" | "dark") || "light",
 
     //Actions 
     setSelectedAppId(appId) {
@@ -42,5 +45,11 @@ export const useAppStore = create<AppState>((set) => ({
     },
     setRfInstance(instance) {
         set({ rfInstance: instance })
+    },
+    toggleTheme() {
+        const next = get().theme === "light" ? "dark" : "light";
+        localStorage.setItem("theme", next);
+        document.documentElement.classList.toggle("dark", next === "dark");
+        set({ theme: next });
     },
 }));

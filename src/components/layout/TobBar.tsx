@@ -1,5 +1,5 @@
 
-import { PanelRight, Plus, Workflow } from "lucide-react";
+import { PanelRight, Plus, Workflow, Share2, User, Sun, Moon } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAppStore } from "../../store/useAppStore";
 import { useGraph } from "../../context/GraphContext";
@@ -9,6 +9,8 @@ export function TopBar() {
   const setMobilePanelOpen = useAppStore((s) => s.setMobilePanelOpen);
   const setSelectedNodeId  = useAppStore((s) => s.setSelectedNodeId);
   const rfInstance = useAppStore((s) => s.rfInstance);
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
   const { addNode } = useGraph();
 
   const handleAddNode = () => {
@@ -40,11 +42,19 @@ export function TopBar() {
         </Button>
 
         <Button variant="outline" size="sm" onClick={handleAddNode}>
-          <Plus className="mr-1 h-4 w-4" />
-          Add Node
+          <Plus className="h-4 w-4" />
+          <span className="hidden md:inline ml-1">Add Node</span>
         </Button>
-        <Button variant="outline" size="sm">Share</Button>
-        <Button size="sm">Deploy</Button>
+        <Button variant="outline" size="sm">
+          <Share2 className="h-4 w-4" />
+          <span className="hidden md:inline ml-1">Share</span>
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="User">
+          <User className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={toggleTheme}>
+          {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        </Button>
       </div>
     </header>
   );
